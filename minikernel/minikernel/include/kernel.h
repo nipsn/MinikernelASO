@@ -93,7 +93,8 @@ int sis_escribir();
  */
 servicio tabla_servicios[NSERVICIOS]={	{sis_crear_proceso},
 					{sis_terminar_proceso},
-					{sis_escribir}};
+					{sis_escribir}
+					{obtener_id_pr}};
 
 #endif /* _KERNEL_H */
 
