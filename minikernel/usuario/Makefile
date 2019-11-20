@@ -2,8 +2,8 @@
 # usuario/Makefile
 #	Makefile de programas de usuario
 #
-# NOTA: EN LA VERSIÓN INICIAL SÓLO COMPILARÁN CORRECTAMENTE LOS PROGRAMAS
-# init, excep_arit, excep_mem y simplon, YA QUE LOS DEMÁS USAN LLAMADAS QUE
+# NOTA: EN LA VERSIï¿½N INICIAL Sï¿½LO COMPILARï¿½N CORRECTAMENTE LOS PROGRAMAS
+# init, excep_arit, excep_mem y simplon, YA QUE LOS DEMï¿½S USAN LLAMADAS QUE
 # NO TIENE QUE IMPLEMENTAR EL ALUMNO 
 #
 
@@ -17,7 +17,7 @@ BIBLIOTECA=$(LIBDIR)/libserv.a
 CC=cc
 CFLAGS=-Wall -fPIC -Werror -g -I$(INCLUDEDIR)
 
-PROGRAMAS=init excep_arit excep_mem simplon prueba_dormir dormilon prueba_mutex1 creador1 creador2 creador3 creador4 abridor prueba_mutex2 mutex1 mutex2 prueba_RR1 yosoy prueba_RR2 mudo prueba_term lector
+PROGRAMAS=init excep_arit excep_mem simplon yosoy #prueba_dormir dormilon prueba_mutex1 creador1 creador2 creador3 creador4 abridor prueba_mutex2 mutex1 mutex2 prueba_RR1 prueba_RR2 mudo prueba_term lector
 
 all: biblioteca $(PROGRAMAS)
 
