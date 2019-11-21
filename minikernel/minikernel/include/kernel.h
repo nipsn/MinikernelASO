@@ -31,10 +31,12 @@
 typedef struct BCP_t *BCPptr;
 
 typedef struct BCP_t {
-        int id;				/* ident. del proceso */
-        int estado;			/* TERMINADO|LISTO|EJECUCION|BLOQUEADO*/
-        contexto_t contexto_regs;	/* copia de regs. de UCP */
-        void * pila;			/* dir. inicial de la pila */
+    int id;				/* ident. del proceso */
+    int estado;			/* TERMINADO|LISTO|EJECUCION|BLOQUEADO*/
+	unsigned int segundos_dormir;
+	unsigned long long int seg_comienzo_dormir;
+    contexto_t contexto_regs;	/* copia de regs. de UCP */
+    void * pila;			/* dir. inicial de la pila */
 	BCPptr siguiente;		/* puntero a otro BCP */
 	void *info_mem;			/* descriptor del mapa de memoria */
 } BCP;
@@ -69,6 +71,7 @@ BCP tabla_procs[MAX_PROC];
  * Variable global que representa la cola de procesos listos
  */
 lista_BCPs lista_listos= {NULL, NULL};
+lista_BCPs lista_bloqueados={NULL, NULL};
 
 /*
  *
@@ -88,6 +91,7 @@ int sis_crear_proceso();
 int sis_terminar_proceso();
 int sis_escribir();
 int obtener_id_pr();
+int dormir(unsigned int segundos);
 
 /*
  * Variable global que contiene las rutinas que realizan cada llamada
@@ -95,7 +99,8 @@ int obtener_id_pr();
 servicio tabla_servicios[NSERVICIOS]={	{sis_crear_proceso},
 					{sis_terminar_proceso},
 					{sis_escribir},
-					{obtener_id_pr}};
+					{obtener_id_pr},
+					{dormir}};
 
 #endif /* _KERNEL_H */
 
