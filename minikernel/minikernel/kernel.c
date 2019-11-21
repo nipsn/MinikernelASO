@@ -207,7 +207,7 @@ static void int_terminal(){
 static void int_reloj(){
 
 	printk("-> TRATANDO INT. DE RELOJ\n");
-
+	cuentaAtrasBloqueados();
         return;
 }
 
@@ -360,6 +360,24 @@ int dormir(unsigned int segundos){
 	cambio_contexto(&proceso_a_dormir->contexto_regs, &p_proc_actual->contexto_regs);
 	
 	return 0;
+}
+
+void cuentaAtrasBloqueados(){
+	BCPptr aux = lista_bloqueados.primero;
+	unsigned long long int tiempoahora;
+	while(aux != NULL){
+		BCPptr siguiente = aux->siguiente;
+		tiempoahora =leer_reloj_CMOS() * 1000;// a segundos
+		int dif = tiempoahora - aux->seg_comienzo_dormir;// tiempo transcurrido desde que se bloqueo
+
+		if(dif >= aux->segundos_dormir){ //si ha terminado
+			eliminar_elem(&lista_bloqueados, aux);
+			aux->estado = LISTO;
+			insertar_ultimo(&lista_listos, aux);
+		}
+		aux = siguiente;
+	}
+	return;
 }
 
 /*

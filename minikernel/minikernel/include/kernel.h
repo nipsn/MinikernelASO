@@ -83,7 +83,7 @@ typedef struct{
 	int (*fservicio)();
 } servicio;
 
-
+void cuentaAtrasBloqueados();
 /*
  * Prototipos de las rutinas que realizan cada llamada al sistema
  */
