@@ -330,6 +330,38 @@ int sis_terminar_proceso(){
 int obtener_id_pr(){
 	return p_proc_actual->id;
 }
+
+int dormir(unsigned int segundos){
+	/*
+	guarda el tiempo en el que entra en dormir. 
+	guarda el nivel de interrupcion en el que se estaba ejecutando
+	cambia el estado del proceso actual a BLOQUEADO y se elimina de la lista de listos
+	guarda los segundos que tiene que estar bloqueado
+	inserta al final de la lista de bloqueados
+	inicia el proceso actual
+	fija el nivel de interrupcion al anterior
+	cambia el contexto
+	*/
+	
+	int nivel_interrupcion = fijar_nivel_int(NIVEL_3);
+	BCPptr proceso_a_dormir = p_proc_actual;
+	
+	proceso_a_dormir->estado = BLOQUEADO;
+	proceso_a_dormir->segundos_dormir = segundos;
+	proceso_a_dormir->seg_comienzo_dormir = leer_reloj_CMOS() * 1000; // cambia ms a segundos
+
+	eliminar_elem(&lista_listos, proceso_a_dormir);
+	insertar_ultimo(&lista_bloqueados,proceso_a_dormir);
+
+	p_proc_actual = planificador();
+
+	fijar_nivel_int(nivel_interrupcion);
+	
+	cambio_contexto(&proceso_a_dormir->contexto_regs, &p_proc_actual->contexto_regs);
+	
+	return 0;
+}
+
 /*
  *
  * Rutina de inicializaci�n invocada en arranque
