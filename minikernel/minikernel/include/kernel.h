@@ -33,8 +33,8 @@ typedef struct BCP_t *BCPptr;
 typedef struct BCP_t {
     int id;				/* ident. del proceso */
     int estado;			/* TERMINADO|LISTO|EJECUCION|BLOQUEADO*/
-	unsigned int segundos_dormir;
-	unsigned long long int seg_comienzo_dormir;
+	unsigned int segundos_dormir; /*segundos que debe dormir el proceso si fuera necesario*/
+	unsigned long long int reloj_inicio_dormir;
     contexto_t contexto_regs;	/* copia de regs. de UCP */
     void * pila;			/* dir. inicial de la pila */
 	BCPptr siguiente;		/* puntero a otro BCP */

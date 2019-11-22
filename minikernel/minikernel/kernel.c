@@ -105,7 +105,7 @@ static void eliminar_elem(lista_BCPs *lista, BCP * proc){
 static void espera_int(){
 	int nivel;
 
-	printk("-> NO HAY LISTOS. ESPERA INT\n");
+	//printk("-> NO HAY LISTOS. ESPERA INT\n");
 
 	/* Baja al m�nimo el nivel de interrupci�n mientras espera */
 	nivel=fijar_nivel_int(NIVEL_1);
@@ -186,7 +186,7 @@ static void exc_mem(){
 	printk("-> EXCEPCION DE MEMORIA EN PROC %d\n", p_proc_actual->id);
 	liberar_proceso();
 
-        return; /* no deber�a llegar aqui */
+    return; /* no deber�a llegar aqui */
 }
 
 /*
@@ -198,7 +198,7 @@ static void int_terminal(){
 	car = leer_puerto(DIR_TERMINAL);
 	printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
 
-        return;
+    return;
 }
 
 /*
@@ -206,9 +206,9 @@ static void int_terminal(){
  */
 static void int_reloj(){
 
-	printk("-> TRATANDO INT. DE RELOJ\n");
+	//printk("-> TRATANDO INT. DE RELOJ\n");
 	cuentaAtrasBloqueados();
-        return;
+    return;
 }
 
 /*
@@ -332,47 +332,42 @@ int obtener_id_pr(){
 }
 
 int dormir(unsigned int segundos){
-	/*
-	guarda el tiempo en el que entra en dormir. 
-	guarda el nivel de interrupcion en el que se estaba ejecutando
-	cambia el estado del proceso actual a BLOQUEADO y se elimina de la lista de listos
-	guarda los segundos que tiene que estar bloqueado
-	inserta al final de la lista de bloqueados
-	inicia el proceso actual
-	fija el nivel de interrupcion al anterior
-	cambia el contexto
-	*/
-	
-	int nivel_interrupcion = fijar_nivel_int(NIVEL_3);
-	BCPptr proceso_a_dormir = p_proc_actual;
-	
-	proceso_a_dormir->estado = BLOQUEADO;
-	proceso_a_dormir->segundos_dormir = segundos;
-	proceso_a_dormir->seg_comienzo_dormir = leer_reloj_CMOS() * 1000; // cambia ms a segundos
+	//leo el parametro de los registros
+	unsigned int seg_registro = (unsigned int)leer_registro(1);
 
-	eliminar_elem(&lista_listos, proceso_a_dormir);
-	insertar_ultimo(&lista_bloqueados,proceso_a_dormir);
+	//guardo el nivel de interrupcion
+	int n_interrupcion = fijar_nivel_int(NIVEL_3);
+	BCPptr actual = p_proc_actual;
 
+	//actualizo la estructura de datos
+	actual->estado = BLOQUEADO;
+	actual->segundos_dormir = seg_registro * TICK;
+	
+
+	//cambio de lista
+	eliminar_elem(&lista_listos, actual);
+	insertar_ultimo(&lista_bloqueados, actual);
+
+	//el planificador devuelve el proceso a ejecutar
 	p_proc_actual = planificador();
 
-	fijar_nivel_int(nivel_interrupcion);
-	
-	cambio_contexto(&proceso_a_dormir->contexto_regs, &p_proc_actual->contexto_regs);
-	
+	//restauro el nivel de interrupcion
+	fijar_nivel_int(n_interrupcion);
+
+	cambio_contexto(&(actual->contexto_regs), &(p_proc_actual->contexto_regs));
+
 	return 0;
 }
 
 void cuentaAtrasBloqueados(){
+	//recorro la lista y actualizo los tiempos
 	BCPptr aux = lista_bloqueados.primero;
-	unsigned long long int tiempoahora;
 	while(aux != NULL){
+		aux->segundos_dormir--;
 		BCPptr siguiente = aux->siguiente;
-		tiempoahora =leer_reloj_CMOS() * 1000;// a segundos
-		int dif = tiempoahora - aux->seg_comienzo_dormir;// tiempo transcurrido desde que se bloqueo
-
-		if(dif >= aux->segundos_dormir){ //si ha terminado
-			eliminar_elem(&lista_bloqueados, aux);
+		if(aux->segundos_dormir <=0){//si ha terminado lo cambio de lista
 			aux->estado = LISTO;
+			eliminar_elem(&lista_bloqueados, aux);
 			insertar_ultimo(&lista_listos, aux);
 		}
 		aux = siguiente;
