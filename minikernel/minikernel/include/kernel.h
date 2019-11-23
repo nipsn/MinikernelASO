@@ -27,9 +27,6 @@
 #define NO_RECURSIVO 0
 #define RECURSIVO 1
 
-#define NUM_MUT 64
-#define MAX_NOM_MUT 50
-#define NUM_MUT_PROC 10
 /*
  *
  * Definicion del tipo que corresponde con el BCP.
@@ -42,12 +39,11 @@ typedef struct BCP_t {
     int id;				/* ident. del proceso */
     int estado;			/* TERMINADO|LISTO|EJECUCION|BLOQUEADO*/
 	unsigned int segundos_dormir; /*segundos que debe dormir el proceso si fuera necesario*/
-	unsigned long long int reloj_inicio_dormir;
     contexto_t contexto_regs;	/* copia de regs. de UCP */
     void * pila;			/* dir. inicial de la pila */
 	BCPptr siguiente;		/* puntero a otro BCP */
 	void *info_mem;			/* descriptor del mapa de memoria */
-	int descriptores[NUM_MUT_PROC];// descriptores de mutex
+	int descriptores[NUM_MUT_PROC];// descriptores de mutex en uso
 } BCP;
 
 /*
@@ -91,7 +87,6 @@ lista_BCPs lista_listos= {NULL, NULL};
 lista_BCPs lista_bloqueados={NULL, NULL};
 
 
-
 mutex lista_mutex[NUM_MUT];
 /*
  *
@@ -104,6 +99,9 @@ typedef struct{
 } servicio;
 
 void cuentaAtrasBloqueados();
+int quedanMutexDisponibles();
+int buscarMutexPorNombre();
+int insertarDescriptorAlFinal();
 /*
  * Prototipos de las rutinas que realizan cada llamada al sistema
  */

@@ -359,37 +359,6 @@ int dormir(unsigned int segundos){
 	return 0;
 }
 
-int quedanMutexDisponibles(){
-	return &lista_mutex[NUM_MUT] != NULL;
-}
-
-int buscarMutexPorNombre(char* nombre){
-	//devuelve 0 si es posible,1 si el nombre esta en uso y 2 si el proceso actual no tiene descriptores libres
-
-	if(p_proc_actual->descriptores[NUM_MUT_PROC] != NULL){
-		int i = 0;
-		mutex* aux = &lista_mutex[i];
-		while(aux != NULL){
-			if(strcmp(nombre, aux->nombre) == 0){
-				return 1;
-			}
-			i++;
-			aux = &lista_mutex[i];
-		}
-		return 0;
-	} else {
-		printk("El proceso tiene en uso todos los descriptores disponibles.");
-		return 2;
-	}
-}
-
-
-
-
-int crear_mutex(char* nombre, int tipo){
-
-}
-
 void cuentaAtrasBloqueados(){
 	//recorro la lista y actualizo los tiempos
 	BCPptr aux = lista_bloqueados.primero;
@@ -405,6 +374,77 @@ void cuentaAtrasBloqueados(){
 	}
 	return;
 }
+
+int quedanMutexDisponibles(){
+	return &lista_mutex[NUM_MUT] == NULL;
+}
+
+int buscarMutexPorNombre(char* nombre){
+	//devuelve 0 si es posible,1 si el nombre esta en uso y 2 si el proceso actual no tiene descriptores libres
+
+	if(p_proc_actual->descriptores[NUM_MUT_PROC] != NULL){
+		int i = 0;
+		mutex* aux = &lista_mutex[i];
+		while(aux != NULL){
+			if(strcmp(nombre, aux->nombre) == 0){
+				printk("Ya existe un mutex con ese nombre. Abortando.");
+				return -1;
+			}
+			i++;
+			aux = &lista_mutex[i];
+		}
+		return 0;
+	} else {
+		printk("El proceso tiene en uso todos los descriptores disponibles.");
+		return -2;
+	}
+}
+
+int insertarDescriptorAlFinal(){
+	int i = 0;
+	int j = 0;
+	while(p_proc_actual->descriptores[i] != NULL){
+		i++;
+	}
+	i++;// donde lo inserto
+	while(&lista_mutex[j] != NULL){
+		j++;
+	}
+	j++;// que numero inserto
+	p_proc_actual->descriptores[i] = j;
+	return j; //devuelvo el descriptor
+}
+
+int crear_mutex(char* nombre, int tipo){
+	char* nom = (char*)leer_registro(1);
+	int t = (int) leer_registro(2);
+
+	mutex m;
+	strcpy(m.nombre, nom);
+	m.recursivo = t;
+	m.n_procesos_esperando = 0;
+	m.bloqueos = 0;
+
+	if(buscarMutexPorNombre(nom) == 0){
+		if(quedanMutexDisponibles()){
+			m.libre = 1;
+			return insertarDescriptorAlFinal();
+		} else {
+			BCPptr aux = p_proc_actual;
+
+			//cambio el estado a bloqueado
+			aux->estado = BLOQUEADO;
+			eliminar_elem(&lista_listos, aux);
+			insertar_ultimo(&m.procesos_esperando, aux);
+			m.n_procesos_esperando++;
+
+			//cambio al siguiente de la lista
+			p_proc_actual = planificador();
+			cambio_contexto(&(aux->contexto_regs), &(p_proc_actual->contexto_regs));
+		}
+	}
+}
+
 
 /*
  *
