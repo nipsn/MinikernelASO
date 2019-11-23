@@ -359,6 +359,37 @@ int dormir(unsigned int segundos){
 	return 0;
 }
 
+int quedanMutexDisponibles(){
+	return &lista_mutex[NUM_MUT] != NULL;
+}
+
+int buscarMutexPorNombre(char* nombre){
+	//devuelve 0 si es posible,1 si el nombre esta en uso y 2 si el proceso actual no tiene descriptores libres
+
+	if(p_proc_actual->descriptores[NUM_MUT_PROC] != NULL){
+		int i = 0;
+		mutex* aux = &lista_mutex[i];
+		while(aux != NULL){
+			if(strcmp(nombre, aux->nombre) == 0){
+				return 1;
+			}
+			i++;
+			aux = &lista_mutex[i];
+		}
+		return 0;
+	} else {
+		printk("El proceso tiene en uso todos los descriptores disponibles.");
+		return 2;
+	}
+}
+
+
+
+
+int crear_mutex(char* nombre, int tipo){
+
+}
+
 void cuentaAtrasBloqueados(){
 	//recorro la lista y actualizo los tiempos
 	BCPptr aux = lista_bloqueados.primero;

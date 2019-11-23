@@ -21,7 +21,15 @@
 #include "const.h"
 #include "HAL.h"
 #include "llamsis.h"
+#include "string.h"
 
+
+#define NO_RECURSIVO 0
+#define RECURSIVO 1
+
+#define NUM_MUT 64
+#define MAX_NOM_MUT 50
+#define NUM_MUT_PROC 10
 /*
  *
  * Definicion del tipo que corresponde con el BCP.
@@ -39,6 +47,7 @@ typedef struct BCP_t {
     void * pila;			/* dir. inicial de la pila */
 	BCPptr siguiente;		/* puntero a otro BCP */
 	void *info_mem;			/* descriptor del mapa de memoria */
+	int descriptores[NUM_MUT_PROC];// descriptores de mutex
 } BCP;
 
 /*
@@ -54,7 +63,15 @@ typedef struct{
 	BCP *ultimo;
 } lista_BCPs;
 
-
+typedef struct{
+	char nombre[MAX_NOM_MUT];
+	int libre; // LIBRE|OCUPADO
+	int recursivo; //RECURSIVO|NO RECURSIVO
+	int n_procesos_esperando; // numero de procesos esperando
+	lista_BCPs procesos_esperando; // lista de procesos esperando
+	BCPptr proceso_usando;// proceso que está actualmente usando
+	int bloqueos; // total de bloqueos
+} mutex;
 /*
  * Variable global que identifica el proceso actual
  */
@@ -73,6 +90,9 @@ BCP tabla_procs[MAX_PROC];
 lista_BCPs lista_listos= {NULL, NULL};
 lista_BCPs lista_bloqueados={NULL, NULL};
 
+
+
+mutex lista_mutex[NUM_MUT];
 /*
  *
  * Definici�n del tipo que corresponde con una entrada en la tabla de
@@ -92,6 +112,8 @@ int sis_terminar_proceso();
 int sis_escribir();
 int obtener_id_pr();
 int dormir(unsigned int segundos);
+int crear_mutex(char* nombre, int tipo);
+
 
 /*
  * Variable global que contiene las rutinas que realizan cada llamada
