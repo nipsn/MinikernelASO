@@ -427,7 +427,9 @@ int crear_mutex(char* nombre, int tipo){
 
 	if(buscarMutexPorNombre(nom) == 0){
 		if(quedanMutexDisponibles()){
-			m.libre = 1;
+			m.libre = 0; //no esta abierto
+			lista_mutex[total_mutex] = m;
+			total_mutex++;
 			return insertarDescriptorAlFinal();
 		} else {
 			BCPptr aux = p_proc_actual;
@@ -445,6 +447,38 @@ int crear_mutex(char* nombre, int tipo){
 	}
 }
 
+int abrir_mutex(char* nombre){
+	char* nom = (char*) leer_registro(1);
+	if(p_proc_actual->descriptores[NUM_MUT_PROC] == NULL){
+		// si quedan descriptores disponibles
+		int i = 0;
+		int encontrado = 0;
+		int pos_mutex;
+		mutex* aux = &lista_mutex[i];
+		while(aux != NULL){
+			if(strcmp(nombre, aux->nombre) == 0){
+				encontrado = 1;
+				pos_mutex = i;
+			}
+			i++;
+			aux = &lista_mutex[i];
+		}
+		
+		if(encontrado == 1){
+			// si existe un mutex con ese nombre
+
+
+
+			return pos_mutex;
+		} else {
+			printk("No existe el mutex especificado.");
+			return -1;
+		}
+	} else {
+		printk("No quedan descriptores disponibles para este proceso. Abortando...");
+		return -1;
+	}
+}
 
 /*
  *

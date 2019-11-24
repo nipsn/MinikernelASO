@@ -63,7 +63,7 @@ typedef struct{
 	char nombre[MAX_NOM_MUT];
 	int libre; // LIBRE|OCUPADO
 	int recursivo; //RECURSIVO|NO RECURSIVO
-	int n_procesos_esperando; // numero de procesos esperando
+	int n_procesos_esperando; // numero de procesos esperando asociado a procesos_esperando
 	lista_BCPs procesos_esperando; // lista de procesos esperando
 	BCPptr proceso_usando;// proceso que está actualmente usando
 	int bloqueos; // total de bloqueos
@@ -88,6 +88,7 @@ lista_BCPs lista_bloqueados={NULL, NULL};
 
 
 mutex lista_mutex[NUM_MUT];
+int total_mutex = 0;
 /*
  *
  * Definici�n del tipo que corresponde con una entrada en la tabla de
@@ -111,7 +112,7 @@ int sis_escribir();
 int obtener_id_pr();
 int dormir(unsigned int segundos);
 int crear_mutex(char* nombre, int tipo);
-
+int abrir_mutex(char*nombre);
 
 /*
  * Variable global que contiene las rutinas que realizan cada llamada
@@ -120,7 +121,9 @@ servicio tabla_servicios[NSERVICIOS]={	{sis_crear_proceso},
 					{sis_terminar_proceso},
 					{sis_escribir},
 					{obtener_id_pr},
-					{dormir}};
+					{dormir},
+					{crear_mutex},
+					{abrir_mutex}};
 
 #endif /* _KERNEL_H */
 
