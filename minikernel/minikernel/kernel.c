@@ -389,7 +389,7 @@ int buscarMutexPorNombre(char* nombre){
 		mutex* aux = &lista_mutex[i];
 		while(aux != NULL){
 			if(strcmp(nombre, aux->nombre) == 0){
-				printk("Ya existe un mutex con ese nombre. Abortando.");
+				printk("Ya existe un mutex con ese nombre. Abortando.\n");
 				return -1;
 			}
 			i++;
@@ -397,7 +397,7 @@ int buscarMutexPorNombre(char* nombre){
 		}
 		return 0;
 	} else {
-		printk("El proceso tiene en uso todos los descriptores disponibles.");
+		printk("El proceso tiene en uso todos los descriptores disponibles.\n");
 		return -2;
 	}
 }
@@ -501,33 +501,15 @@ int abrir_mutex(char* nombre){
 	}
 }
 
-int estaMutexBloqueado(unsigned int mutexid){
-	//devuelve 0 si esta bloqueado, 1 si no
-	int res = 0;
-	int i = 0;
-	mutex* aux = &lista_mutex[i];
-
-	while(&lista_mutex[i] != NULL){
-		if(i = mutexid){ // si es el id que me pasan
-			if(&lista_mutex[i].bloqueos > 0){
-				return 1;
-			} else {
-				return 0;
-			}
-		} else {
-			i++;
-		}
-	}
-	return -1;
-}
-
 int lock(unsigned int mutexid){
 	unsigned int id = (unsigned int) leer_registro(1);
 	int nivel_de_prioridad = fijar_nivel_int(NIVEL_1);
 
 	//int bloqueado = estaMutexBloqueado(id);
 	if(&lista_mutex[id] == NULL){
-		printk("El mutex no existe. Cancelando operacion.");
+		printk("El mutex no existe. Cancelando operacion.\n");
+		fijar_nivel_int(nivel_de_prioridad);
+		return -1;
 	} else {
 		if(lista_mutex[id].bloqueos > 0){ // mutex bloqueado
 			if(lista_mutex[id].recursivo == RECURSIVO){
@@ -555,10 +537,11 @@ int lock(unsigned int mutexid){
 			//bloqueo el mutex
 			lista_mutex[id].bloqueos = 1;
 			lista_mutex[id].proceso_usando = p_proc_actual;
+			
 		} 
 	}
-
-
+	printk("Lock terminado.\n");
+	fijar_nivel_int(nivel_de_prioridad);
 	return 0;
 }
 
