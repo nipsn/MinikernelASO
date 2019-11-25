@@ -380,7 +380,9 @@ int quedanMutexDisponibles(){
 }
 
 int buscarMutexPorNombre(char* nombre){
-	//devuelve 0 si es posible,1 si el nombre esta en uso y 2 si el proceso actual no tiene descriptores libres
+	//devuelve 0 si el nombre no esta en uso,
+	//1 si el nombre esta en uso y 
+	//2 si el proceso actual no tiene descriptores libres
 
 	if(p_proc_actual->descriptores[NUM_MUT_PROC] != NULL){
 		int i = 0;
@@ -400,7 +402,7 @@ int buscarMutexPorNombre(char* nombre){
 	}
 }
 
-int insertarDescriptorAlFinal(){
+int asignarDescriptorAProceso(){
 	int i = 0;
 	int j = 0;
 	while(p_proc_actual->descriptores[i] != NULL){
@@ -419,18 +421,28 @@ int crear_mutex(char* nombre, int tipo){
 	char* nom = (char*)leer_registro(1);
 	int t = (int) leer_registro(2);
 
+	int nivel_de_prioridad = fijar_nivel_int(NIVEL_1);
+
+	//compruebo si el nombre es valido
+	if(strlen(nom) > (MAX_NOM_MUT-1)){
+		//el ultimo caracter se elimina
+		nom[MAX_NOM_MUT] = '\0';
+	}
 	mutex m;
-	strcpy(m.nombre, nom);
-	m.recursivo = t;
-	m.n_procesos_esperando = 0;
-	m.bloqueos = 0;
 
 	if(buscarMutexPorNombre(nom) == 0){
 		if(quedanMutexDisponibles()){
-			m.libre = 0; //no esta abierto
+			strcpy(m.nombre, nom);
+			m.recursivo = t;
+			m.n_procesos_esperando = 0;
+			m.bloqueos = 0;
+
 			lista_mutex[total_mutex] = m;
 			total_mutex++;
-			return insertarDescriptorAlFinal();
+			
+			int desc = abrir_mutex(nom);
+			fijar_nivel_int(nivel_de_prioridad);
+			return desc;
 		} else {
 			BCPptr aux = p_proc_actual;
 
@@ -442,40 +454,38 @@ int crear_mutex(char* nombre, int tipo){
 
 			//cambio al siguiente de la lista
 			p_proc_actual = planificador();
+
+			fijar_nivel_int(nivel_de_prioridad);
+
 			cambio_contexto(&(aux->contexto_regs), &(p_proc_actual->contexto_regs));
+
+			return -1;
 		}
 	}
+	return 0;
 }
 
 int abrir_mutex(char* nombre){
 	char* nom = (char*) leer_registro(1);
+
+	int nivel_de_prioridad = fijar_nivel_int(NIVEL_1);
+
 	if(p_proc_actual->descriptores[NUM_MUT_PROC] == NULL){
-		// si quedan descriptores disponibles
-		int i = 0;
-		int encontrado = 0;
-		int pos_mutex;
-		mutex* aux = &lista_mutex[i];
-		while(aux != NULL){
-			if(strcmp(nombre, aux->nombre) == 0){
-				encontrado = 1;
-				pos_mutex = i;
-			}
-			i++;
-			aux = &lista_mutex[i];
-		}
-		
-		if(encontrado == 1){
-			// si existe un mutex con ese nombre
-
-
-
-			return pos_mutex;
+		//si quedan descriptores disponibles
+		printk("Verificando nombre...\n");
+		if(buscarMutexPorNombre(nom) == 1){
+			printk("Mutex encontrado. Asignando...\n");
+			int desc = asignarDescriptorAProceso();
+			fijar_nivel_int(nivel_de_prioridad);
+			return desc;
 		} else {
-			printk("No existe el mutex especificado.");
+			printk("No existe el mutex especificado.\n");
+			fijar_nivel_int(nivel_de_prioridad);
 			return -1;
 		}
 	} else {
-		printk("No quedan descriptores disponibles para este proceso. Abortando...");
+		printk("No quedan descriptores disponibles para este proceso. Abortando...\n");
+		fijar_nivel_int(nivel_de_prioridad);
 		return -1;
 	}
 }

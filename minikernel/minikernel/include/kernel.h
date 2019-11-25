@@ -26,7 +26,8 @@
 
 #define NO_RECURSIVO 0
 #define RECURSIVO 1
-
+#define LIBRE 1
+#define OCUPADO 0
 /*
  *
  * Definicion del tipo que corresponde con el BCP.
@@ -61,7 +62,7 @@ typedef struct{
 
 typedef struct{
 	char nombre[MAX_NOM_MUT];
-	int libre; // LIBRE|OCUPADO
+	int libre_ocupado; // LIBRE|OCUPADO
 	int recursivo; //RECURSIVO|NO RECURSIVO
 	int n_procesos_esperando; // numero de procesos esperando asociado a procesos_esperando
 	lista_BCPs procesos_esperando; // lista de procesos esperando
@@ -102,7 +103,7 @@ typedef struct{
 void cuentaAtrasBloqueados();
 int quedanMutexDisponibles();
 int buscarMutexPorNombre();
-int insertarDescriptorAlFinal();
+int asignarDescriptorAProceso();
 /*
  * Prototipos de las rutinas que realizan cada llamada al sistema
  */

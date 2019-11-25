@@ -21,6 +21,8 @@
 
 /* Evita el uso del printf de la bilioteca est�ndar */
 #define printf escribirf
+#define NO_RECURSIVO 0
+#define RECURSIVO 1
 
 /* Funcion de biblioteca */
 int escribirf(const char *formato, ...);
