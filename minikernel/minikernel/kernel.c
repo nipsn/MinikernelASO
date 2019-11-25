@@ -490,6 +490,17 @@ int abrir_mutex(char* nombre){
 	}
 }
 
+int lock(unsigned int mutexid){
+	return 0;
+}
+
+int unlock(unsigned int mutexid){
+	return 0;
+}
+
+int cerrar_mutex(unsigned int mutexid){
+	return 0;
+}
 /*
  *
  * Rutina de inicializaci�n invocada en arranque

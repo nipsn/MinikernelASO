@@ -114,6 +114,9 @@ int obtener_id_pr();
 int dormir(unsigned int segundos);
 int crear_mutex(char* nombre, int tipo);
 int abrir_mutex(char*nombre);
+int lock(unsigned int mutexid);
+int unlock(unsigned int mutexid);
+int cerrar_mutex(unsigned int mutexid);
 
 /*
  * Variable global que contiene las rutinas que realizan cada llamada
@@ -124,7 +127,10 @@ servicio tabla_servicios[NSERVICIOS]={	{sis_crear_proceso},
 					{obtener_id_pr},
 					{dormir},
 					{crear_mutex},
-					{abrir_mutex}};
+					{abrir_mutex},
+					{lock},
+					{unlock},
+					{cerrar_mutex}};
 
 #endif /* _KERNEL_H */
 
