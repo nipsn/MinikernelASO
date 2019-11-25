@@ -45,6 +45,7 @@ typedef struct BCP_t {
 	BCPptr siguiente;		/* puntero a otro BCP */
 	void *info_mem;			/* descriptor del mapa de memoria */
 	int descriptores[NUM_MUT_PROC];// descriptores de mutex en uso
+	int n_descriptores;
 } BCP;
 
 /*
