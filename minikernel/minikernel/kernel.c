@@ -555,6 +555,44 @@ int unlock(unsigned int mutexid){
 	unsigned int id = leer_registro(1);
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
+	int i = 0;
+	int encontrado = -1;
+	for(i = 0;i < NUM_MUT_PROC;i++){
+		if(p_proc_actual->descriptores[i] == id){
+			encontrado = 0;
+		}
+	}
+
+	if(encontrado == -1){
+		printk("El mutex no se encuentra en la lista de descriptores\n");
+		fijar_nivel_int(n_interrupcion);
+		return -1;
+	} else { //esta en la lista
+		if(lista_mutex[id].proceso_usando != p_proc_actual){
+			printk("El proceso actual no es el que esta usando el mutex.\n");
+			fijar_nivel_int(n_interrupcion);
+			return -2;
+		} else { //el proceso actual esta usando el mutex
+			if(lista_mutex[id].bloqueos == 0){
+				printk("El mutex no tiene procesos en espera.\n");
+				fijar_nivel_int(n_interrupcion);
+				return -3;
+			} else { //todo correcto
+				lista_mutex[id].bloqueos--;
+
+				if(lista_mutex[id].bloqueos == 0){
+					lista_mutex[id].proceso_usando = NULL;
+					if(lista_mutex[id].procesos_esperando.primero != NULL){
+						BCPptr aux = lista_mutex[id].procesos_esperando.primero;
+						eliminar_primero(&lista_mutex[id].procesos_esperando);
+						aux->estado = LISTO;
+						insertar_ultimo(&lista_listos, aux);
+					}
+				}
+			}
+		}
+	}
+	fijar_nivel_int(n_interrupcion);
 	return 0;
 }
 
