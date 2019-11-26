@@ -389,11 +389,11 @@ int buscarMutexPorNombre(char* nombre){
 	//devuelve 0 si el nombre no esta en uso,
 	//-1 si el nombre esta en uso y 
 	//-2 si el proceso actual no tiene descriptores libres
-
-	if(p_proc_actual->descriptores[NUM_MUT_PROC] != NULL){
+	if(p_proc_actual->descriptores[NUM_MUT_PROC] != -1){
 		int i = 0;
 		mutex* aux = &lista_mutex[i];
-		while(aux != NULL){
+
+		for(i = 0;i < NUM_MUT;i++){
 			if(strcmp(nombre, aux->nombre) == 0){
 				printk("Ya existe un mutex con ese nombre. Abortando.\n");
 				return -1;
@@ -410,21 +410,26 @@ int buscarMutexPorNombre(char* nombre){
 
 
 int crear_mutex(char* nombre, int tipo){
+	printk("Comienza crear mutex.\n");
+
 	char* nom = (char*)leer_registro(1);
 	int t = (int) leer_registro(2);
 
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
+	printk("Comprobando validez del nombre\n");
 	//compruebo si el nombre es valido
 	if(strlen(nom) > (MAX_NOM_MUT-1)){
 		//el ultimo caracter se elimina
 		nom[MAX_NOM_MUT] = '\0';
 	}
+	
 	mutex m;
 
 	if(buscarMutexPorNombre(nom) == 0){
+		printk("El nombre no existe\n");
 		if(quedanMutexDisponibles()){
-			
+			printk("Creando mutex.\n");
 			//creo el mutex
 			strcpy(m.nombre, nom);
 			m.libre_ocupado = OCUPADO;
@@ -470,11 +475,12 @@ int crear_mutex(char* nombre, int tipo){
 }
 
 int abrir_mutex(char* nombre){
+	printk("Comenzando abrir mutex.\n");
 	char* nom = (char*) leer_registro(1);
 
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
-	if(p_proc_actual->descriptores[NUM_MUT_PROC] == NULL){
+	if(p_proc_actual->descriptores[NUM_MUT_PROC] == -1){
 		//si quedan descriptores disponibles
 		printk("Verificando nombre...\n");
 		if(buscarMutexPorNombre(nom) == 1){
@@ -495,6 +501,7 @@ int abrir_mutex(char* nombre){
 }
 
 int lock(unsigned int mutexid){
+	printk("Comenzando lock\n");
 	unsigned int id = (unsigned int) leer_registro(1);
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 

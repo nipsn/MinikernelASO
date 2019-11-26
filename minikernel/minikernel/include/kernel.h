@@ -21,7 +21,7 @@
 #include "const.h"
 #include "HAL.h"
 #include "llamsis.h"
-#include "string.h"
+#include <string.h>
 
 
 #define NO_RECURSIVO 0
