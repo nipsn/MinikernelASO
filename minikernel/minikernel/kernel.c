@@ -480,7 +480,7 @@ int abrir_mutex(char* nombre){
 
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
-	if(p_proc_actual->descriptores[NUM_MUT_PROC] == -1){
+	if(p_proc_actual->descriptores[NUM_MUT_PROC-1] == -1){
 		//si quedan descriptores disponibles
 		printk("Verificando nombre...\n");
 		if(buscarMutexPorNombre(nom) == 1){
@@ -588,7 +588,19 @@ int unlock(unsigned int mutexid){
 	return 0;
 }
 
+int buscar_mutex_para_cerrar(int id){
+
+	for(int i = 0; i<NUM_MUT_PROC; i++){
+		if(p_proc_actual->descriptores[i] == id){
+			return i;
+		}
+	}
+	printk("No existe el mutex que se quiere cerrar\n");
+	return -1;
+}
+
 int cerrar_mutex(unsigned int mutexid){
+	printk("Comienza cerrar mutex\n");
 	unsigned int id = (unsigned int) leer_registro(1);
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 	int i = 0;
@@ -596,11 +608,17 @@ int cerrar_mutex(unsigned int mutexid){
 	for (i = 0; i < NUM_MUT_PROC; i++){
 		if(p_proc_actual->descriptores[i] == id) encontrado = 1;
 	}
-	
 	if(encontrado == 1){
 		//se elimina de la lista de descriptores del proceso actual y de la lista general de mutex
 		p_proc_actual->n_descriptores--;
+	printk("llega aqui %d %d\n", id, encontrado);
 		lista_mutex[id].n_procesos_esperando--;
+
+		/*
+		TO-DO: el mutexid que le llega a esta funcion es -1. Por eso al intentar acceder en la linea 615 salta excepcion de memoria. 
+		Para solucionar esto es probable que el problema venga desde atrás. Desde abrir o crear (seguramente crear). Sospecho que puede ser
+		al llamar a la funcion abrir dentro de crear. Esta devuelve un -1 por que tiene algún error y se lo come el crear y mas adelante el cerrar.
+		*/
 
 		if(lista_mutex[id].proceso_usando == p_proc_actual){
 			//si lo esta usando el proceso actual
@@ -628,8 +646,8 @@ int cerrar_mutex(unsigned int mutexid){
 				}
 			}
 		}
-		fijar_nivel_int(n_interrupcion);
 		printk("Mutex cerrado.\n");
+		fijar_nivel_int(n_interrupcion);
 		return 0;
 	} else {
 		printk("El descriptor no existe en el proceso actual.\n");
