@@ -387,8 +387,8 @@ int quedanMutexDisponibles(){
 
 int buscarMutexPorNombre(char* nombre){
 	//devuelve 0 si el nombre no esta en uso,
-	//1 si el nombre esta en uso y 
-	//2 si el proceso actual no tiene descriptores libres
+	//-1 si el nombre esta en uso y 
+	//-2 si el proceso actual no tiene descriptores libres
 
 	if(p_proc_actual->descriptores[NUM_MUT_PROC] != NULL){
 		int i = 0;
@@ -448,7 +448,8 @@ int crear_mutex(char* nombre, int tipo){
 			//cambio el estado a bloqueado
 			aux->estado = BLOQUEADO;
 			eliminar_elem(&lista_listos, aux);
-			insertar_ultimo(&m.procesos_esperando, aux);
+			//inserto en la lista de esprea para mutex
+			insertar_ultimo(&lista_espera_mutex, aux);
 			m.bloqueos++;
 
 			//cambio al siguiente de la lista
@@ -581,7 +582,55 @@ int unlock(unsigned int mutexid){
 }
 
 int cerrar_mutex(unsigned int mutexid){
-	return 0;
+	unsigned int id = (unsigned int) leer_registro(1);
+	int n_interrupcion = fijar_nivel_int(NIVEL_1);
+	int i = 0;
+	int encontrado = -1;
+	for (i = 0; i < NUM_MUT_PROC; i++){
+		if(p_proc_actual->descriptores[i] == id) encontrado = 1;
+	}
+	
+	if(encontrado == 1){
+		//se elimina de la lista de descriptores del proceso actual y de la lista general de mutex
+		p_proc_actual->n_descriptores--;
+		lista_mutex[id].n_procesos_esperando--;
+
+		if(lista_mutex[id].proceso_usando == p_proc_actual){
+			//si lo esta usando el proceso actual
+			printk("Sacando al proceso actual del mutex.\n");
+			lista_mutex[id].bloqueos = 0;
+			lista_mutex[id].proceso_usando = NULL;
+
+			if(lista_mutex[id].procesos_esperando.primero != NULL){
+				printk("Asignando nuevo proceso al mutex.\n");
+				BCPptr siguiente = lista_mutex[id].procesos_esperando.primero;
+				eliminar_primero(&lista_mutex[id].procesos_esperando);
+				siguiente->estado = LISTO;
+				insertar_ultimo(&lista_listos, siguiente);
+			}
+			if(lista_mutex[id].n_procesos_esperando == 0){
+				printk("Liberando el proceso.\n");
+				//Liberamos el proceso
+				lista_mutex[id].libre_ocupado = 0;
+				if(lista_espera_mutex.primero != NULL){
+					printk("Modificando la lista de espera.\n");
+					BCPptr proceso = lista_espera_mutex.primero;
+					eliminar_primero(&lista_espera_mutex);
+					insertar_ultimo(&lista_listos, proceso);
+					proceso->estado = LISTO;
+				}
+			}
+		}
+		fijar_nivel_int(n_interrupcion);
+		printk("Mutex cerrado.\n");
+		return 0;
+	} else {
+		printk("El descriptor no existe en el proceso actual.\n");
+		fijar_nivel_int(n_interrupcion);
+		return -1;
+	}
+	//no debe llegar aqui
+	return -25;
 }
 /*
  *
