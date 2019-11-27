@@ -31,6 +31,7 @@
 #define LOCK 7
 #define UNLOCK 8 
 #define CERRAR_MUTEX 9
+#define LEER_CARACTER 11
 
 #endif /* _LLAMSIS_H */
 

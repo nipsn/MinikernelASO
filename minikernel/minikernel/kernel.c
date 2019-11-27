@@ -197,7 +197,7 @@ static void int_terminal(){
 
 	car = leer_puerto(DIR_TERMINAL);
 	printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
-
+  //modificar para la lectura de caracteres
     return;
 }
 
@@ -657,6 +657,19 @@ int cerrar_mutex(unsigned int mutexid){
 	//no debe llegar aqui
 	return -25;
 }
+int leer_caracter(){
+	char leidos -1//para comprobar si lee del buffer 
+	//falta fijar el nivel
+
+	if(char_escritos>0){
+		//tratar cada caracter escrito
+
+	}else{
+		//rutina de interrupcion
+	}
+
+	return salida;
+}
 /*
  *
  * Rutina de inicializaci�n invocada en arranque
@@ -678,6 +691,8 @@ int main(){
 
 	iniciar_tabla_proc();		/* inicia BCPs de tabla de procesos */
 
+	int char_escritos;
+	//poner a 0 leer y escribir?
 	/* crea proceso inicial */
 	if (crear_tarea((void *)"init")<0)
 		panico("no encontrado el proceso inicial");

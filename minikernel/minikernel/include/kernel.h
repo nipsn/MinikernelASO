@@ -35,6 +35,9 @@
  *
  */
 typedef struct BCP_t *BCPptr;
+int char_escritos;
+int escribir;
+int leer;
 
 typedef struct BCP_t {
     int id;				/* ident. del proceso */
@@ -119,6 +122,7 @@ int abrir_mutex(char*nombre);
 int lock(unsigned int mutexid);
 int unlock(unsigned int mutexid);
 int cerrar_mutex(unsigned int mutexid);
+int leer_caracter();
 
 /*
  * Variable global que contiene las rutinas que realizan cada llamada
@@ -132,7 +136,8 @@ servicio tabla_servicios[NSERVICIOS]={	{sis_crear_proceso},
 					{abrir_mutex},
 					{lock},
 					{unlock},
-					{cerrar_mutex}};
+					{cerrar_mutex}
+					{leer_caracter}};
 
 #endif /* _KERNEL_H */
 
