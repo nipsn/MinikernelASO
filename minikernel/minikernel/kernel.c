@@ -382,7 +382,7 @@ void cuentaAtrasBloqueados(){
 }
 
 int quedanMutexDisponibles(){
-	return &lista_mutex[NUM_MUT] == NULL;
+	return !(&lista_mutex[NUM_MUT] == NULL);
 }
 
 int buscarMutexPorNombre(char* nombre){
@@ -427,7 +427,7 @@ int crear_mutex(char* nombre, int tipo){
 	mutex m;
 
 	if(buscarMutexPorNombre(nom) == 0){
-		printk("El nombre no existe\n");
+		printk("El nombre no existe, se puede crear.\n");
 		if(quedanMutexDisponibles()){
 			printk("Creando mutex.\n");
 			//creo el mutex
@@ -483,12 +483,13 @@ int abrir_mutex(char* nombre){
 	if(p_proc_actual->descriptores[NUM_MUT_PROC-1] == -1){
 		//si quedan descriptores disponibles
 		printk("Verificando nombre...\n");
-		if(buscarMutexPorNombre(nom) == 1){
+		if(buscarMutexPorNombre(nom) == -1){
 			printk("Mutex encontrado. Asignando...\n");
 			p_proc_actual->descriptores[p_proc_actual->n_descriptores] = total_mutex;
 			fijar_nivel_int(n_interrupcion);
 			return total_mutex; //total_mutex representa el numero de mutex y el descriptor que asignamos
 		} else {
+			printk("%d\n", total_mutex);
 			printk("No existe el mutex especificado.\n");
 			fijar_nivel_int(n_interrupcion);
 			return -1;
@@ -611,7 +612,7 @@ int cerrar_mutex(unsigned int mutexid){
 	if(encontrado == 1){
 		//se elimina de la lista de descriptores del proceso actual y de la lista general de mutex
 		p_proc_actual->n_descriptores--;
-	printk("llega aqui %d %d\n", id, encontrado);
+	 printk("llega aqui %d %d\n", id, encontrado);
 		lista_mutex[id].n_procesos_esperando--;
 
 		/*
