@@ -193,11 +193,30 @@ static void exc_mem(){
  * Tratamiento de interrupciones de terminal
  */
 static void int_terminal(){
+	int n_interrupcion = fijar_nivel_int(NIVEL_2);//1 o 2?
 	char car;
-
 	car = leer_puerto(DIR_TERMINAL);
 	printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
+
+	if(char_escritos < TAM_BUF_TERM){
+		buffer_char[escribir] = car;
+		escribir = (escribir +1 ) % TAM_BUF_TERM;
+		char_escritos++;
+		if(lista_espera_char.primero != NULL){
+			printk("Habia un proceso esperando a la escritura");
+			//si hay procesos esperando a que se escriba en el terminal
+			BCPptr proceso = lista_espera_char.primero;
+			//elimina al proceso de la lista de procesos en espera de escritura
+			eliminar_primero(&lista_espera_char);
+			proceso->estado=LISTO;
+			//añade el proceso a  la lista de procesos listos
+			insertar_ultimo(&lista_listos, proceso);
+		}
+	else{
+		printk("El buffer esta lleno");
+		}
   //modificar para la lectura de caracteres
+	fijar_nivel_int(n_interrupcion);
     return;
 }
 
@@ -658,17 +677,33 @@ int cerrar_mutex(unsigned int mutexid){
 	return -25;
 }
 int leer_caracter(){
-	char leidos -1//para comprobar si lee del buffer 
-	//falta fijar el nivel
+	
+	int n_interrupcion = fijar_nivel_int(NIVEL_1);
+	char leido -1//para comprobar si lee del buffer 
 
 	if(char_escritos>0){
 		//tratar cada caracter escrito
-
+		leido= buffer_char[leer];
+		leer= (leer +1) % TAM_BUF_TERM;
+		char_escritos--;
 	}else{
-		//rutina de interrupcion
+		//bloquea el proceso si no hay ningun caracter introducido
+		BCPptr proceso = p_proc_actual;
+		proceso->estado= BLOQUEADO;
+		int interrup = fijar_nivel_int(NIVEL_3);//no se si esta bien
+		//eliminar de la lista de procesos listos
+		eliminar_elem(&lista_listos, proceso);
+		//añadir a la lista de espera de introducir char
+		insertar_ultimo(&lista_espera_char, proceso);
+		//cambio al siguiente de la lista
+		p_proc_actual = planificador();
+
+		fijar_nivel_int(interrup);
+
+		cambio_contexto(&(proceso->contexto_regs),&(p_proc_actual->contexto_regs));
 	}
 
-	return salida;
+	return leido;
 }
 /*
  *
@@ -692,6 +727,8 @@ int main(){
 	iniciar_tabla_proc();		/* inicia BCPs de tabla de procesos */
 
 	int char_escritos;
+	int escribir=0;
+	int leer=0;
 	//poner a 0 leer y escribir?
 	/* crea proceso inicial */
 	if (crear_tarea((void *)"init")<0)

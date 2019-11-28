@@ -38,6 +38,7 @@ typedef struct BCP_t *BCPptr;
 int char_escritos;
 int escribir;
 int leer;
+char buffer_char [TAM_BUF_TERM];
 
 typedef struct BCP_t {
     int id;				/* ident. del proceso */
@@ -91,6 +92,7 @@ BCP tabla_procs[MAX_PROC];
 lista_BCPs lista_listos= {NULL, NULL};
 lista_BCPs lista_bloqueados={NULL, NULL};
 lista_BCPs lista_espera_mutex={NULL, NULL};
+lista_BCPs lista_espera_char={NULL,NULL};
 
 
 mutex lista_mutex[NUM_MUT];
