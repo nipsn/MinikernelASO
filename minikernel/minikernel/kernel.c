@@ -389,6 +389,7 @@ int buscarMutexPorNombre(char* nombre){
 	//devuelve 0 si el nombre no esta en uso,
 	//-1 si el nombre esta en uso y 
 	//-2 si el proceso actual no tiene descriptores libres
+	//TODO: rework a esta funcion. hace demasiadas cosas
 	if(p_proc_actual->descriptores[NUM_MUT_PROC] != -1){
 		int i = 0;
 		mutex* aux = &lista_mutex[i];
