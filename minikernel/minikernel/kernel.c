@@ -486,11 +486,15 @@ int abrir_mutex(char* nombre){
 		if(buscarMutexPorNombre(nom) == -1){
 			printk("Mutex encontrado. Asignando...\n");
 			p_proc_actual->descriptores[p_proc_actual->n_descriptores] = total_mutex;
+			//TODO aqui casca. Puede ser que no lo abra realmente
 			fijar_nivel_int(n_interrupcion);
+			//total_mutex++;
+			printk("%d\n", total_mutex);
 			return total_mutex; //total_mutex representa el numero de mutex y el descriptor que asignamos
 		} else {
-			printk("%d\n", total_mutex);
 			printk("No existe el mutex especificado.\n");
+			//total_mutex--;
+			//printk("%d\n", total_mutex);
 			fijar_nivel_int(n_interrupcion);
 			return -1;
 		}
@@ -631,6 +635,7 @@ int cerrar_mutex(unsigned int mutexid){
 				printk("Asignando nuevo proceso al mutex.\n");
 				BCPptr siguiente = lista_mutex[id].procesos_esperando.primero;
 				eliminar_primero(&lista_mutex[id].procesos_esperando);
+				total_mutex--;
 				siguiente->estado = LISTO;
 				insertar_ultimo(&lista_listos, siguiente);
 			}
