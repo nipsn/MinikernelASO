@@ -117,6 +117,9 @@ static void espera_int(){
  * Funci�n de planificacion que implementa un algoritmo FIFO.
  */
 static BCP * planificador(){
+	//ROUND ROBIN
+	ticksPorRodaja = TICKS_POR_RODAJA;
+	procesoAExpulsar = NULL;
 	while (lista_listos.primero==NULL)
 		espera_int();		/* No hay nada que hacer */
 	return lista_listos.primero;
@@ -201,6 +204,14 @@ static void int_terminal(){
     return;
 }
 
+static void roundRobin(){
+	ticksPorRodaja --;
+	if(ticksPorRodaja <= 0){
+		procesoAExpulsar = p_proc_actual;
+		activar_int_SW();
+	}
+
+}
 /*
  * Tratamiento de interrupciones de reloj
  */
@@ -208,6 +219,7 @@ static void int_reloj(){
 
 	//printk("-> TRATANDO INT. DE RELOJ\n");
 	cuentaAtrasBloqueados();
+	roundRobin();
     return;
 }
 
@@ -231,8 +243,20 @@ static void tratar_llamsis(){
  */
 static void int_sw(){
 
-	printk("-> TRATANDO INT. SW\n");
-
+	int n_interrupcion = fijar_nivel_int(NIVEL_1);
+	//printk("-> TRATANDO INT. SW\n");
+	if (p_proc_actual == procesoAExpulsar)
+	{
+		BCPptr actual = p_proc_actual;
+		int n_interrupcion = fijar_nivel_int(NIVEL_3);
+		eliminar_primero(&lista_listos);
+		insertar_ultimo(&lista_listos, actual);
+		p_proc_actual = planificador();
+		fijar_nivel_int(n_interrupcion);
+		cambio_contexto(&(actual->contexto_regs), &(p_proc_actual->contexto_regs));
+	}
+	fijar_nivel_int(n_interrupcion);
+	
 	return;
 }
 

@@ -106,6 +106,10 @@ void cuentaAtrasBloqueados();
 int quedanMutexDisponibles();
 int buscarMutexPorNombre();
 int asignarDescriptorAProceso();
+
+//RR
+int ticksPorRodaja;
+BCPptr procesoAExpulsar;
 /*
  * Prototipos de las rutinas que realizan cada llamada al sistema
  */
