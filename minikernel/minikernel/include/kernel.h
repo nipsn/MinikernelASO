@@ -36,8 +36,8 @@
  */
 typedef struct BCP_t *BCPptr;
 int char_escritos;
-int escribir;
-int leer;
+int ind_escribir;
+int ind_leer;
 char buffer_char [TAM_BUF_TERM];
 
 typedef struct BCP_t {

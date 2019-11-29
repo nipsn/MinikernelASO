@@ -199,8 +199,8 @@ static void int_terminal(){
 	printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
 
 	if(char_escritos < TAM_BUF_TERM){
-		buffer_char[escribir] = car;
-		escribir = (escribir +1 ) % TAM_BUF_TERM;
+		buffer_char[ind_escribir] = car;
+		ind_escribir = (ind_escribir +1 ) % TAM_BUF_TERM;
 		char_escritos++;
 		if(lista_espera_char.primero != NULL){
 			printk("Habia un proceso esperando a la escritura");
@@ -680,11 +680,11 @@ int leer_caracter(){
 	
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 	char leido -1//para comprobar si lee del buffer 
-
-	if(char_escritos>0){
+	do{
+		if(char_escritos>0){
 		//tratar cada caracter escrito
-		leido= buffer_char[leer];
-		leer= (leer +1) % TAM_BUF_TERM;
+		leido= buffer_char[ind_leer];
+		ind_leer= (ind_leer +1) % TAM_BUF_TERM;
 		char_escritos--;
 	}else{
 		//bloquea el proceso si no hay ningun caracter introducido
@@ -701,8 +701,8 @@ int leer_caracter(){
 		fijar_nivel_int(interrup);
 
 		cambio_contexto(&(proceso->contexto_regs),&(p_proc_actual->contexto_regs));
-	}
-
+	}while(leido<0);
+	fijar_nivel_int(n_interrupcion);
 	return leido;
 }
 /*
@@ -727,8 +727,8 @@ int main(){
 	iniciar_tabla_proc();		/* inicia BCPs de tabla de procesos */
 
 	int char_escritos;
-	int escribir=0;
-	int leer=0;
+	int ind_escribir=0;
+	int ind_leer=0;
 	//poner a 0 leer y escribir?
 	/* crea proceso inicial */
 	if (crear_tarea((void *)"init")<0)
