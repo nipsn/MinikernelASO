@@ -420,15 +420,16 @@ int buscarMutexPorNombre(char* nombre){
 
 		for(i = 0;i < NUM_MUT;i++){
 			if(strcmp(nombre, aux->nombre) == 0){
-				printk("Ya existe un mutex con ese nombre. Abortando.\n");
+				printk("Ya existe un mutex con ese nombre. retorno 1.\n");
 				return -1;
 			}
 			i++;
 			aux = &lista_mutex[i];
 		}
+		printk("retorno 0\n");
 		return 0;
 	} else {
-		printk("El proceso tiene en uso todos los descriptores disponibles.\n");
+		printk("El proceso tiene en uso todos los descriptores disponibles. retorno -2\n");
 		return -2;
 	}
 }
@@ -508,10 +509,10 @@ int abrir_mutex(char* nombre){
 	if(p_proc_actual->descriptores[NUM_MUT_PROC-1] == -1){
 		//si quedan descriptores disponibles
 		printk("Verificando nombre...\n");
-		if(buscarMutexPorNombre(nom) == -1){
+		if(buscarMutexPorNombre(nom) != -2){
 			printk("Mutex encontrado. Asignando...\n");
+			//TO-DO: para abrir un mutex dado, no se debe devolver totalmutex. Se debe recorrer la lista y devolver el que corresponda
 			p_proc_actual->descriptores[p_proc_actual->n_descriptores] = total_mutex;
-			//TODO aqui casca. Puede ser que no lo abra realmente
 			fijar_nivel_int(n_interrupcion);
 			//total_mutex++;
 			printk("%d\n", total_mutex);
