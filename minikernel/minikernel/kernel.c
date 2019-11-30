@@ -406,32 +406,22 @@ void cuentaAtrasBloqueados(){
 }
 
 int quedanMutexDisponibles(){
-	return !(&lista_mutex[NUM_MUT] == NULL);
+	return !(&lista_mutex[NUM_MUT-1] == NULL);
 }
 
 int buscarMutexPorNombre(char* nombre){
-	//devuelve 0 si el nombre no esta en uso,
-	//-1 si el nombre esta en uso y 
-	//-2 si el proceso actual no tiene descriptores libres
-	//TODO: rework a esta funcion. hace demasiadas cosas
-	if(p_proc_actual->descriptores[NUM_MUT_PROC] != -1){
-		int i = 0;
-		mutex* aux = &lista_mutex[i];
-
-		for(i = 0;i < NUM_MUT;i++){
-			if(strcmp(nombre, aux->nombre) == 0){
-				printk("Ya existe un mutex con ese nombre. retorno 1.\n");
-				return -1;
-			}
-			i++;
-			aux = &lista_mutex[i];
+	//si el nombre coincide se devuelve el descriptor correspondiente. si no existe se devuelve -1
+	int i = 0;
+	for(i = 0;i < NUM_MUT;i++){
+		if(strcmp((char*) &lista_mutex[i].nombre, nombre) == 0){
+			//si el nombre coincide
+			printk("buscarPorNombre ha encontrado un descriptor en la lista de mutex con ese nombre.\n");
+			return i;
 		}
-		printk("retorno 0\n");
-		return 0;
-	} else {
-		printk("El proceso tiene en uso todos los descriptores disponibles. retorno -2\n");
-		return -2;
 	}
+	printk("buscarPorNombre fallo. no hay mutex con ese nombre\n");
+
+	return -1;
 }
 
 
@@ -452,8 +442,9 @@ int crear_mutex(char* nombre, int tipo){
 	
 	mutex m;
 
-	if(buscarMutexPorNombre(nom) == 0){
+	if(buscarMutexPorNombre(nom) == -1){
 		printk("El nombre no existe, se puede crear.\n");
+		//TO-DO: rework quedanMutexDisponibles(). Si no quedan mutex disponibles el proceso debe ponerse en espera y no lo hace.
 		if(quedanMutexDisponibles()){
 			printk("Creando mutex.\n");
 			//creo el mutex
@@ -509,14 +500,13 @@ int abrir_mutex(char* nombre){
 	if(p_proc_actual->descriptores[NUM_MUT_PROC-1] == -1){
 		//si quedan descriptores disponibles
 		printk("Verificando nombre...\n");
-		if(buscarMutexPorNombre(nom) != -2){
+		int desc = buscarMutexPorNombre(nom);
+		if(desc >= 0 && desc < NUM_MUT_PROC){ //aqui huele a caca
 			printk("Mutex encontrado. Asignando...\n");
-			//TO-DO: para abrir un mutex dado, no se debe devolver totalmutex. Se debe recorrer la lista y devolver el que corresponda
-			p_proc_actual->descriptores[p_proc_actual->n_descriptores] = total_mutex;
+			p_proc_actual->descriptores[p_proc_actual->n_descriptores] = desc;
 			fijar_nivel_int(n_interrupcion);
-			//total_mutex++;
-			printk("%d\n", total_mutex);
-			return total_mutex; //total_mutex representa el numero de mutex y el descriptor que asignamos
+			printk("%d\n", desc);
+			return desc;
 		} else {
 			printk("No existe el mutex especificado.\n");
 			//total_mutex--;
@@ -529,6 +519,7 @@ int abrir_mutex(char* nombre){
 		fijar_nivel_int(n_interrupcion);
 		return -1;
 	}
+	printk("caca\n");
 }
 
 int lock(unsigned int mutexid){
@@ -645,11 +636,6 @@ int cerrar_mutex(unsigned int mutexid){
 	 printk("llega aqui %d %d\n", id, encontrado);
 		lista_mutex[id].n_procesos_esperando--;
 
-		/*
-		TO-DO: el mutexid que le llega a esta funcion es -1. Por eso al intentar acceder en la linea 615 salta excepcion de memoria. 
-		Para solucionar esto es probable que el problema venga desde atrás. Desde abrir o crear (seguramente crear). Sospecho que puede ser
-		al llamar a la funcion abrir dentro de crear. Esta devuelve un -1 por que tiene algún error y se lo come el crear y mas adelante el cerrar.
-		*/
 
 		if(lista_mutex[id].proceso_usando == p_proc_actual){
 			//si lo esta usando el proceso actual
