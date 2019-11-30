@@ -138,7 +138,7 @@ servicio tabla_servicios[NSERVICIOS]={	{sis_crear_proceso},
 					{abrir_mutex},
 					{lock},
 					{unlock},
-					{cerrar_mutex}
+					{cerrar_mutex},
 					{leer_caracter}};
 
 #endif /* _KERNEL_H */
