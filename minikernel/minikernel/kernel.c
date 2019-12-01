@@ -219,6 +219,7 @@ static void int_terminal(){
 	fijar_nivel_int(n_interrupcion);
     return;
 }
+}
 
 /*
  * Tratamiento de interrupciones de reloj
@@ -679,7 +680,7 @@ int cerrar_mutex(unsigned int mutexid){
 int leer_caracter(){
 	
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
-	char leido -1//para comprobar si lee del buffer 
+	char leido= -1;//para comprobar si lee del buffer 
 	do{
 		if(char_escritos>0){
 		//tratar cada caracter escrito
@@ -701,6 +702,7 @@ int leer_caracter(){
 		fijar_nivel_int(interrup);
 
 		cambio_contexto(&(proceso->contexto_regs),&(p_proc_actual->contexto_regs));
+	}
 	}while(leido<0);
 	fijar_nivel_int(n_interrupcion);
 	return leido;
@@ -739,4 +741,6 @@ int main(){
 	cambio_contexto(NULL, &(p_proc_actual->contexto_regs));
 	panico("S.O. reactivado inesperadamente");
 	return 0;
-}
+	}
+	
+
