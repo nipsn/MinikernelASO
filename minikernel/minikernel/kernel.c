@@ -411,16 +411,25 @@ int quedanMutexDisponibles(){
 
 int buscarMutexPorNombre(char* nombre){
 	//si el nombre coincide se devuelve el descriptor correspondiente. si no existe se devuelve -1
+
 	int i = 0;
 	for(i = 0;i < NUM_MUT;i++){
-		if(strcmp((char*) &lista_mutex[i].nombre, nombre) == 0){
+		if(strcmp(lista_mutex[i].nombre, nombre) == 0){
 			//si el nombre coincide
 			printk("buscarPorNombre ha encontrado un descriptor en la lista de mutex con ese nombre.\n");
 			return i;
 		}
 	}
-	printk("buscarPorNombre fallo. no hay mutex con ese nombre\n");
+	printk("buscarPorNombre no ha encontrado mutex con ese nombre\n");
 
+	return -1;
+}
+
+int buscarHuecoListaMutex(){
+	int i = 0;
+	for(i = 0;i < NUM_MUT;i++){
+		if(lista_mutex[i].libre_ocupado == LIBRE) return i;
+	}
 	return -1;
 }
 
@@ -445,6 +454,8 @@ int crear_mutex(char* nombre, int tipo){
 	if(buscarMutexPorNombre(nom) == -1){
 		printk("El nombre no existe, se puede crear.\n");
 		//TO-DO: rework quedanMutexDisponibles(). Si no quedan mutex disponibles el proceso debe ponerse en espera y no lo hace.
+		int pos = buscarHuecoListaMutex();
+		printk("la posicion libre es: %d\n",pos);
 		if(quedanMutexDisponibles()){
 			printk("Creando mutex.\n");
 			//creo el mutex
@@ -456,7 +467,7 @@ int crear_mutex(char* nombre, int tipo){
 			m.bloqueos = 0;
 
 			//guardo el mutex
-			lista_mutex[total_mutex] = m;
+			lista_mutex[pos] = m;
 			total_mutex++;
 			
 			int desc = abrir_mutex(nom);
@@ -633,9 +644,10 @@ int cerrar_mutex(unsigned int mutexid){
 	}
 	if(encontrado == 1){
 		//se elimina de la lista de descriptores del proceso actual y de la lista general de mutex
+		p_proc_actual->descriptores[i] = -1;
 		p_proc_actual->n_descriptores--;
-	 printk("llega aqui %d %d\n", id, encontrado);
 		lista_mutex[id].n_procesos_esperando--;
+		lista_mutex[id].libre_ocupado = LIBRE;
 
 
 		if(lista_mutex[id].proceso_usando == p_proc_actual){
@@ -696,6 +708,9 @@ int main(){
 	iniciar_cont_teclado();		/* inici cont. teclado */
 
 	iniciar_tabla_proc();		/* inicia BCPs de tabla de procesos */
+	
+	int i = 0;
+	for(i = 0;i < NUM_MUT;i++) lista_mutex[i].libre_ocupado = LIBRE;
 
 	/* crea proceso inicial */
 	if (crear_tarea((void *)"init")<0)
