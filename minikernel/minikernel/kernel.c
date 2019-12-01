@@ -497,13 +497,14 @@ int abrir_mutex(char* nombre){
 
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
-	if(p_proc_actual->descriptores[NUM_MUT_PROC-1] == -1){
+	if(p_proc_actual->n_descriptores < NUM_MUT_PROC){
 		//si quedan descriptores disponibles
 		printk("Verificando nombre...\n");
 		int desc = buscarMutexPorNombre(nom);
-		if(desc >= 0 && desc < NUM_MUT_PROC){ //aqui huele a caca
+		if(desc >= 0){ //aqui huele a caca
 			printk("Mutex encontrado. Asignando...\n");
 			p_proc_actual->descriptores[p_proc_actual->n_descriptores] = desc;
+			p_proc_actual->n_descriptores++;
 			fijar_nivel_int(n_interrupcion);
 			printk("%d\n", desc);
 			return desc;
