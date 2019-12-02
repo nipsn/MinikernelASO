@@ -536,12 +536,20 @@ int lock(unsigned int mutexid){
 	unsigned int id = (unsigned int) leer_registro(1);
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
-	if(&lista_mutex[id] == NULL){
+	int encontrado = -1;
+	int i = 0;
+	for(i = 0;i < NUM_MUT_PROC;i++){
+		if(p_proc_actual->descriptores[i] == id) encontrado = 0;
+	}
+
+
+	if(encontrado == -1){
 		printk("El mutex no existe. Cancelando operacion.\n");
 		fijar_nivel_int(n_interrupcion);
 		return -1;
 	} else {
 		int contador;
+		int test = 0;
 		do{
 			contador = 1;
 			if(lista_mutex[id].proceso_usando == NULL){ // si no lo esta usando ningun proceso
@@ -558,6 +566,8 @@ int lock(unsigned int mutexid){
 					}
 				} else { // lo usa otro, me bloqueo
 					 contador = 0;
+					 printk("%d\n", test);
+					 test++;
 					 BCPptr aux = p_proc_actual;
 
 					 //cambio el estado a bloqueado
@@ -655,7 +665,6 @@ int cerrar_mutex(unsigned int mutexid){
 		lista_mutex[id].n_procesos_esperando--;
 		lista_mutex[id].libre_ocupado = LIBRE;
 
-
 		if(lista_mutex[id].proceso_usando == p_proc_actual){
 			//si lo esta usando el proceso actual
 			printk("Sacando al proceso actual del mutex.\n");
@@ -673,7 +682,7 @@ int cerrar_mutex(unsigned int mutexid){
 			if(lista_mutex[id].n_procesos_esperando == 0){
 				printk("Liberando el proceso.\n");
 				//Liberamos el proceso
-				lista_mutex[id].libre_ocupado = 0;
+				lista_mutex[id].libre_ocupado = LIBRE;
 				if(lista_espera_mutex.primero != NULL){
 					printk("Modificando la lista de espera.\n");
 					BCPptr proceso = lista_espera_mutex.primero;
