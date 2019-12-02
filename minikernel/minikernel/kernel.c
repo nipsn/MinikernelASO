@@ -552,9 +552,9 @@ int lock(unsigned int mutexid){
 		int test = 0;
 		do{
 			contador = 1;
-			if(lista_mutex[id].proceso_usando == NULL){ // si no lo esta usando ningun proceso
+			if(lista_mutex[id].proceso_usando == NULL){ // si no lo esta usando ningun proceso, lo uso yo
 				lista_mutex[id].proceso_usando = p_proc_actual;
-				lista_mutex[id].bloqueos++;//bloqueos = 1
+				//lista_mutex[id].bloqueos++;//bloqueos = 1
 			} else { // lo esta usando algun proceso
 				if(lista_mutex[id].proceso_usando == p_proc_actual){ // si lo estoy usando yo
 					if(lista_mutex[id].recursivo == RECURSIVO){ // si es recursivo, lo bloqueo otra vez
