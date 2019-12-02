@@ -386,8 +386,8 @@ int dormir(unsigned int segundos){
 	fijar_nivel_int(n_interrupcion);
 
 	cambio_contexto(&(actual->contexto_regs), &(p_proc_actual->contexto_regs));
-	
-	printk("Proceso termina de dormir.\n");
+
+	printk("Proceso %d termina de dormir.\n", p_proc_actual->id);
 	return 0;
 }
 
@@ -541,45 +541,41 @@ int lock(unsigned int mutexid){
 		fijar_nivel_int(n_interrupcion);
 		return -1;
 	} else {
-		if(lista_mutex[id].proceso_usando == NULL){ // si no lo esta usando ningun proceso
-			lista_mutex[id].proceso_usando = p_proc_actual;
-			lista_mutex[id].bloqueos++;//bloqueos = 1
-		} else { // lo esta usando algun proceso
-			if(lista_mutex[id].proceso_usando == p_proc_actual){ // si lo estoy usando yo
-				if(lista_mutex[id].recursivo == RECURSIVO){ // si es recursivo, lo bloqueo otra vez
-					lista_mutex[id].bloqueos++;
-				} else {
-					printk("Error. El mutex no es recursivo.\n");
-					fijar_nivel_int(n_interrupcion);
-					return -1;
+		int contador;
+		do{
+			contador = 1;
+			if(lista_mutex[id].proceso_usando == NULL){ // si no lo esta usando ningun proceso
+				lista_mutex[id].proceso_usando = p_proc_actual;
+				lista_mutex[id].bloqueos++;//bloqueos = 1
+			} else { // lo esta usando algun proceso
+				if(lista_mutex[id].proceso_usando == p_proc_actual){ // si lo estoy usando yo
+					if(lista_mutex[id].recursivo == RECURSIVO){ // si es recursivo, lo bloqueo otra vez
+						lista_mutex[id].bloqueos++;
+					} else {
+						printk("Error. El mutex no es recursivo.\n");
+						fijar_nivel_int(n_interrupcion);
+						return -1;
+					}
+				} else { // lo usa otro, me bloqueo
+					 contador = 0;
+					 BCPptr aux = p_proc_actual;
+
+					 //cambio el estado a bloqueado
+					 aux->estado = BLOQUEADO;
+					 int n_interrupcion2 = fijar_nivel_int(NIVEL_3);
+					 eliminar_elem(&lista_listos, aux);
+					 insertar_ultimo(&lista_mutex[id].procesos_esperando, aux);	
+					 lista_mutex[id].n_procesos_esperando++;
+
+					 //cambio al siguiente de la lista
+					 p_proc_actual = planificador();
+
+					 fijar_nivel_int(n_interrupcion2);
+					 cambio_contexto(&(aux->contexto_regs), &(p_proc_actual->contexto_regs));
 				}
-			} else { // lo usa otro, me bloqueo
-				BCPptr aux = p_proc_actual;
-
-				//cambio el estado a bloqueado
-				aux->estado = BLOQUEADO;
-				eliminar_elem(&lista_listos, aux);
-				insertar_ultimo(&lista_mutex[id].procesos_esperando, aux);	
-				lista_mutex[id].bloqueos++;
-
-				//cambio al siguiente de la lista
-				p_proc_actual = planificador();
-
-				fijar_nivel_int(n_interrupcion);
-				cambio_contexto(&(aux->contexto_regs), &(p_proc_actual->contexto_regs));
 			}
-		}
 
-		// if(lista_mutex[id].bloqueos > 0){ // mutex bloqueado
-		// 	if(lista_mutex[id].recursivo == RECURSIVO){
-
-		// 	} else {
-		// 	}
-		// } else { // mutex no bloqueado
-		// 	//bloqueo el mutex
-		// 	lista_mutex[id].bloqueos = 1;
-		// 	lista_mutex[id].proceso_usando = p_proc_actual;			
-		// } 
+		} while (!contador);
 	}
 	printk("Lock terminado.\n");
 	fijar_nivel_int(n_interrupcion);

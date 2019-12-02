@@ -28,6 +28,7 @@ int main(){
 	if (lock(desc1)<0)
 		printf("error en lock de mutex. NO DEBE APARECER\n");
 		printf("\n");
+		printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
 	printf("mutex2 ha obtenido mutex m1, se bloquear� a continuaci�n al intentar obtener m2\n");
 		printf("\n");
 	if (lock(desc2)<0)
