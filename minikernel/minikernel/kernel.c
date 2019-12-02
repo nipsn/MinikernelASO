@@ -386,7 +386,8 @@ int dormir(unsigned int segundos){
 	fijar_nivel_int(n_interrupcion);
 
 	cambio_contexto(&(actual->contexto_regs), &(p_proc_actual->contexto_regs));
-
+	
+	printk("Proceso termina de dormir.\n");
 	return 0;
 }
 
@@ -540,8 +541,19 @@ int lock(unsigned int mutexid){
 		fijar_nivel_int(n_interrupcion);
 		return -1;
 	} else {
-		if(lista_mutex[id].bloqueos > 0){ // mutex bloqueado
-			if(lista_mutex[id].recursivo == RECURSIVO){
+		if(lista_mutex[id].proceso_usando == NULL){ // si no lo esta usando ningun proceso
+			lista_mutex[id].proceso_usando = p_proc_actual;
+			lista_mutex[id].bloqueos++;//bloqueos = 1
+		} else { // lo esta usando algun proceso
+			if(lista_mutex[id].proceso_usando == p_proc_actual){ // si lo estoy usando yo
+				if(lista_mutex[id].recursivo == RECURSIVO){ // si es recursivo, lo bloqueo otra vez
+					lista_mutex[id].bloqueos++;
+				} else {
+					printk("Error. El mutex no es recursivo.\n");
+					fijar_nivel_int(n_interrupcion);
+					return -1;
+				}
+			} else { // lo usa otro, me bloqueo
 				BCPptr aux = p_proc_actual;
 
 				//cambio el estado a bloqueado
@@ -554,19 +566,20 @@ int lock(unsigned int mutexid){
 				p_proc_actual = planificador();
 
 				fijar_nivel_int(n_interrupcion);
-
 				cambio_contexto(&(aux->contexto_regs), &(p_proc_actual->contexto_regs));
-
-			} else {
-				printk("Error. El mutex no es recursivo.\n");
-				fijar_nivel_int(n_interrupcion);
-				return -1;
 			}
-		} else { // mutex no bloqueado
-			//bloqueo el mutex
-			lista_mutex[id].bloqueos = 1;
-			lista_mutex[id].proceso_usando = p_proc_actual;			
-		} 
+		}
+
+		// if(lista_mutex[id].bloqueos > 0){ // mutex bloqueado
+		// 	if(lista_mutex[id].recursivo == RECURSIVO){
+
+		// 	} else {
+		// 	}
+		// } else { // mutex no bloqueado
+		// 	//bloqueo el mutex
+		// 	lista_mutex[id].bloqueos = 1;
+		// 	lista_mutex[id].proceso_usando = p_proc_actual;			
+		// } 
 	}
 	printk("Lock terminado.\n");
 	fijar_nivel_int(n_interrupcion);
@@ -574,6 +587,7 @@ int lock(unsigned int mutexid){
 }
 
 int unlock(unsigned int mutexid){
+	printk("Comienza unlock.\n");
 	unsigned int id = leer_registro(1);
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
@@ -614,6 +628,7 @@ int unlock(unsigned int mutexid){
 			}
 		}
 	}
+	printk("Unlock termina.\n");
 	fijar_nivel_int(n_interrupcion);
 	return 0;
 }
