@@ -133,8 +133,9 @@ static BCP * planificador(){
  */
 static void liberar_proceso(){
 	BCP * p_proc_anterior;
-
 	liberar_imagen(p_proc_actual->info_mem); /* liberar mapa */
+
+	//printk("llego aqui\n");
 
 	p_proc_actual->estado=TERMINADO;
 	eliminar_primero(&lista_listos); /* proc. fuera de listos */
@@ -405,10 +406,6 @@ void cuentaAtrasBloqueados(){
 	return;
 }
 
-int quedanMutexDisponibles(){
-	return !(&lista_mutex[NUM_MUT-1] == NULL);
-}
-
 int buscarMutexPorNombre(char* nombre){
 	//si el nombre coincide se devuelve el descriptor correspondiente. si no existe se devuelve -1
 
@@ -416,11 +413,11 @@ int buscarMutexPorNombre(char* nombre){
 	for(i = 0;i < NUM_MUT;i++){
 		if(strcmp(lista_mutex[i].nombre, nombre) == 0){
 			//si el nombre coincide
-			printk("buscarPorNombre ha encontrado un descriptor en la lista de mutex con ese nombre.\n");
+			//printk("buscarPorNombre ha encontrado un descriptor en la lista de mutex con ese nombre.\n");
 			return i;
 		}
 	}
-	printk("buscarPorNombre no ha encontrado mutex con ese nombre\n");
+	//printk("buscarPorNombre no ha encontrado mutex con ese nombre.\n");
 
 	return -1;
 }
@@ -442,7 +439,7 @@ int crear_mutex(char* nombre, int tipo){
 
 	int n_interrupcion = fijar_nivel_int(NIVEL_1);
 
-	printk("Comprobando validez del nombre\n");
+	printk("Comprobando validez del nombre.\n");
 	//compruebo si el nombre es valido
 	if(strlen(nom) > (MAX_NOM_MUT-1)){
 		//el ultimo caracter se elimina
@@ -453,10 +450,9 @@ int crear_mutex(char* nombre, int tipo){
 
 	if(buscarMutexPorNombre(nom) == -1){
 		printk("El nombre no existe, se puede crear.\n");
-		//TO-DO: rework quedanMutexDisponibles(). Si no quedan mutex disponibles el proceso debe ponerse en espera y no lo hace.
 		int pos = buscarHuecoListaMutex();
-		printk("la posicion libre es: %d\n",pos);
-		if(quedanMutexDisponibles()){
+		//printk("la posicion libre es: %d\n",pos);
+		if(pos >= 0){
 			printk("Creando mutex.\n");
 			//creo el mutex
 			strcpy(m.nombre, nom);
@@ -510,14 +506,14 @@ int abrir_mutex(char* nombre){
 
 	if(p_proc_actual->n_descriptores < NUM_MUT_PROC){
 		//si quedan descriptores disponibles
-		printk("Verificando nombre...\n");
+		//printk("Verificando nombre...\n");
 		int desc = buscarMutexPorNombre(nom);
 		if(desc >= 0){ //aqui huele a caca
 			printk("Mutex encontrado. Asignando...\n");
 			p_proc_actual->descriptores[p_proc_actual->n_descriptores] = desc;
 			p_proc_actual->n_descriptores++;
 			fijar_nivel_int(n_interrupcion);
-			printk("%d\n", desc);
+			//printk("%d\n", desc);
 			return desc;
 		} else {
 			printk("No existe el mutex especificado.\n");
@@ -623,13 +619,12 @@ int unlock(unsigned int mutexid){
 }
 
 int buscar_mutex_para_cerrar(int id){
-
 	for(int i = 0; i<NUM_MUT_PROC; i++){
 		if(p_proc_actual->descriptores[i] == id){
 			return i;
 		}
 	}
-	printk("No existe el mutex que se quiere cerrar\n");
+	printk("No existe el mutex que se quiere cerrar.\n");
 	return -1;
 }
 

@@ -103,9 +103,8 @@ typedef struct{
 } servicio;
 
 void cuentaAtrasBloqueados();
-int quedanMutexDisponibles();
 int buscarMutexPorNombre();
-int asignarDescriptorAProceso();
+int buscarHuecoListaMutex();
 
 //RR
 int ticksPorRodaja;
