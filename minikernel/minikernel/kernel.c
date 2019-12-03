@@ -203,7 +203,7 @@ static void int_terminal(){
 		ind_escribir = (ind_escribir +1 ) % TAM_BUF_TERM;
 		char_escritos++;
 		if(lista_espera_char.primero != NULL){
-			printk("Habia un proceso esperando a la escritura");
+		//	printk("Habia un proceso esperando a la escritura");
 			//si hay procesos esperando a que se escriba en el terminal
 			BCPptr proceso = lista_espera_char.primero;
 			//elimina al proceso de la lista de procesos en espera de escritura
@@ -212,13 +212,14 @@ static void int_terminal(){
 			//añade el proceso a  la lista de procesos listos
 			insertar_ultimo(&lista_listos, proceso);
 		}
+	}
 	else{
 		printk("El buffer esta lleno");
 		}
   //modificar para la lectura de caracteres
 	fijar_nivel_int(n_interrupcion);
     return;
-}
+
 }
 
 /*
