@@ -196,9 +196,10 @@ static void int_terminal(){
 	int n_interrupcion = fijar_nivel_int(NIVEL_2);//1 o 2?
 	char car;
 	car = leer_puerto(DIR_TERMINAL);
-	printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
+	
 
 	if(char_escritos < TAM_BUF_TERM){
+		printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
 		buffer_char[ind_escribir] = car;
 		ind_escribir = (ind_escribir +1 ) % TAM_BUF_TERM;
 		char_escritos++;
@@ -214,7 +215,7 @@ static void int_terminal(){
 		}
 	}
 	else{
-		printk("El buffer esta lleno");
+		printk("El buffer esta lleno\n");
 		}
   //modificar para la lectura de caracteres
 	fijar_nivel_int(n_interrupcion);
