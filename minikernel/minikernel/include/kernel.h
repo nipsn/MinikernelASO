@@ -28,6 +28,8 @@
 #define RECURSIVO 1
 #define LIBRE 1
 #define OCUPADO 0
+
+#define MAX_RECURSIVO 8
 /*
  *
  * Definicion del tipo que corresponde con el BCP.

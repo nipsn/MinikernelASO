@@ -619,34 +619,62 @@ int unlock(unsigned int mutexid){
 	 	fijar_nivel_int(n_interrupcion);
 	 	return -1;
 	} else {
-		int loBloquee = -1;
-		BCPptr aux = lista_mutex[i].procesos_esperando.primero;
-		while(aux != NULL){
-			if(aux == p_proc_actual) loBloquee = 1;
-			aux = aux->siguiente;
+
+		if(lista_mutex[id].proceso_usando != p_proc_actual) {
+			printk("El mutex no lo estoy usando yo.\n");
+			return -2;
 		}
-		printk("unlock llega aqui %d\n", loBloquee);
-		if(loBloquee == 1){
-			if(lista_mutex[id].bloqueos >= 0){
-				// pillo el primer bloqueado y lo pongo a usarlo
-				printk("Se procede a desbloquear el mutex 1 vez.\n");
-				BCPptr siguiente = lista_mutex[id].procesos_esperando.primero;
-				eliminar_primero(&lista_mutex[id].procesos_esperando);
-				siguiente->estado = LISTO;
-	 			insertar_ultimo(&lista_listos, aux);
-				lista_mutex[id].proceso_usando = siguiente;
-			} else {
-	 			printk("El mutex no está bloqueado por ningun proceso.\n");
-	 			fijar_nivel_int(n_interrupcion);
-	 			return -3;
-			}
-		} else {
-	 		printk("El mutex no ha sido bloqueado por este proceso.\n");
-	 		fijar_nivel_int(n_interrupcion);
-	 		return -2;
+
+		lista_mutex[id].bloqueos--;
+		if(lista_mutex[id].bloqueos != 0){
+			printk("El mutex es recursivo.\nLock terminado.\n");
+			return 0;
 		}
-		
+		lista_mutex[id].proceso_usando = NULL;
+
+		if(lista_mutex[id].procesos_esperando.primero == NULL){
+			printk("No hay procesos bloqueando el mutex.\n");
+			return -3;
+		}
+
+		printk("El proceso usando pasa a ser el siguiente en espera.\n");
+		BCPptr aux = lista_mutex[id].procesos_esperando.primero;
+
+		aux->estado = LISTO;
+
+		int n_interrupcion2 = fijar_nivel_int(NIVEL_3);
+		eliminar_primero(&lista_mutex[id].procesos_esperando);
+		insertar_ultimo(&lista_listos, aux);
+		fijar_nivel_int(n_interrupcion2);
+
+		lista_mutex[id].proceso_usando = aux;	
 	}
+		// int loBloquee = -1;
+		// BCPptr aux = lista_mutex[i].procesos_esperando.primero;
+		// while(aux != NULL){
+		// 	if(aux->id == p_proc_actual->id) loBloquee = 1;
+		// 	aux = aux->siguiente;
+		// }
+		// printk("unlock llega aqui %d\n", loBloquee);
+		// if(loBloquee == 1){
+		// 	if(lista_mutex[id].bloqueos >= 0){
+		// 		// pillo el primer bloqueado y lo pongo a usarlo
+		// 		printk("Se procede a desbloquear el mutex 1 vez.\n");
+		// 		BCPptr siguiente = lista_mutex[id].procesos_esperando.primero;
+		// 		eliminar_primero(&lista_mutex[id].procesos_esperando);
+		// 		siguiente->estado = LISTO;
+	 	// 		insertar_ultimo(&lista_listos, aux);
+		// 		lista_mutex[id].proceso_usando = siguiente;
+		// 	} else {
+	 	// 		printk("El mutex no está bloqueado por ningun proceso.\n");
+	 	// 		fijar_nivel_int(n_interrupcion);
+	 	// 		return -3;
+		// 	}
+		// } else {
+	 	// 	printk("El mutex no ha sido bloqueado por este proceso.\n");
+	 	// 	fijar_nivel_int(n_interrupcion);
+	 	// 	return -2;
+		// }
 
 
 
