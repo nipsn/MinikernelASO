@@ -106,10 +106,12 @@ typedef struct{
 void cuentaAtrasBloqueados();
 int buscarMutexPorNombre();
 int buscarHuecoListaMutex();
+//TO-DO: añadir funciones
 
 //RR
 int ticksPorRodaja;
 BCPptr procesoAExpulsar;
+
 /*
  * Prototipos de las rutinas que realizan cada llamada al sistema
  */
