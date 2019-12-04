@@ -33,7 +33,7 @@ int main(){
 	
 	if (crear_proceso("abridor")<0)
 		printf("Error creando abridor\n");
-		
+
 	printf("prueba_mutex1: termina\n");
 	return 0; 
 }
