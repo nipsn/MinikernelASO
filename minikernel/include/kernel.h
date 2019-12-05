@@ -29,6 +29,7 @@
 #define LIBRE 1
 #define OCUPADO 0
 
+#define MAX_RECURSIVO 8
 /*
  *
  * Definicion del tipo que corresponde con el BCP.
@@ -36,10 +37,6 @@
  *
  */
 typedef struct BCP_t *BCPptr;
-int char_escritos;
-int ind_escribir;
-int ind_leer;
-char buffer_char [TAM_BUF_TERM];
 
 typedef struct BCP_t {
     int id;				/* ident. del proceso */
@@ -93,7 +90,6 @@ BCP tabla_procs[MAX_PROC];
 lista_BCPs lista_listos= {NULL, NULL};
 lista_BCPs lista_bloqueados={NULL, NULL};
 lista_BCPs lista_espera_mutex={NULL, NULL};
-lista_BCPs lista_espera_char={NULL,NULL};
 
 
 mutex lista_mutex[NUM_MUT];
@@ -111,12 +107,10 @@ typedef struct{
 void cuentaAtrasBloqueados();
 int buscarMutexPorNombre();
 int buscarHuecoListaMutex();
-int liberarTodosLosProcesosBloqueadosMutex(mutex* m);
 
-//Round-Robin
+//RR
 int ticksPorRodaja;
 BCPptr procesoAExpulsar;
-
 /*
  * Prototipos de las rutinas que realizan cada llamada al sistema
  */
@@ -130,7 +124,6 @@ int abrir_mutex(char*nombre);
 int lock(unsigned int mutexid);
 int unlock(unsigned int mutexid);
 int cerrar_mutex(unsigned int mutexid);
-int leer_caracter();
 
 /*
  * Variable global que contiene las rutinas que realizan cada llamada
@@ -144,8 +137,7 @@ servicio tabla_servicios[NSERVICIOS]={	{sis_crear_proceso},
 					{abrir_mutex},
 					{lock},
 					{unlock},
-					{cerrar_mutex},
-					{leer_caracter}};
+					{cerrar_mutex}};
 
 #endif /* _KERNEL_H */
 

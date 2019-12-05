@@ -60,8 +60,13 @@ ALGO COMENTE ESTA PARTE Y DESCOMENTE LA PRUEBA CORRESPONDIENTE */
 
 
 // PRIMERA PRUEBA DE MUTEX
+<<<<<<< HEAD
 	/*if (crear_proceso("prueba_mutex1")<0)
 		printf("Error creando prueba_mutex1\n");*/
+=======
+	//if (crear_proceso("prueba_mutex1")<0)
+	//	printf("Error creando prueba_mutex1\n");
+>>>>>>> master
 
 
 // SEGUNDA PRUEBA DE MUTEX

@@ -1,9 +1,9 @@
 /*
  * usuario/mutex1.c
  *
- *  Minikernel. Versión 1.0
+ *  Minikernel. Versiï¿½n 1.0
  *
- *  Fernando Pérez Costoya
+ *  Fernando Pï¿½rez Costoya
  *
  */
 
@@ -21,25 +21,25 @@ int main(){
 
 	if ((desc=abrir_mutex("m2"))<0)
 		printf("error abriendo m2. NO DEBE APARECER\n");
-
+		printf("\n");
 	if (lock(desc)<0)
 		printf("error en lock de mutex. NO DEBE APARECER\n");
-
-	/* segundo lock sobre semáforo recursivo -> correcto */
+		printf("\n");
+	/* segundo lock sobre semï¿½foro recursivo -> correcto */
 	if (lock(desc)<0)
 		printf("error en lock de mutex. NO DEBE APARECER\n");
-
-	printf("mutex1 duerme 2 segs.: no debe ejecutar ningún proceso, ya que prueba_mutex está dormido y mutex2 bloqueado en mutex m1\n");
+		printf("\n");
+	printf("mutex1 duerme 2 segs.: no debe ejecutar ningï¿½n proceso, ya que prueba_mutex estï¿½ dormido y mutex2 bloqueado en mutex m1\n");
 	dormir(2);
-
-	/* cierre de semáforo: debe despertar a mutex2 */
+		printf("\n");
+	/* cierre de semï¿½foro: debe despertar a mutex2 */
 	if (cerrar_mutex(desc)<0)
 		printf("error al cerrar mutex. NO DEBE APARECER\n");
-
+		printf("\n");
 	printf("mutex1 duerme 1 seg.: debe ejecutar mutex2 ya que cierre de m2 debe desbloquearlo\n");
 	dormir(1);
-
+		printf("\n");
 	printf("mutex1 termina\n");
-
+		printf("\n");
 	return 0;
 }
