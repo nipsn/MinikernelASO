@@ -197,12 +197,34 @@ static void exc_mem(){
  * Tratamiento de interrupciones de terminal
  */
 static void int_terminal(){
+	int n_interrupcion = fijar_nivel_int(NIVEL_2);//1 o 2?
 	char car;
-
 	car = leer_puerto(DIR_TERMINAL);
-	printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
+	
 
+	if(char_escritos < TAM_BUF_TERM){
+		printk("-> TRATANDO INT. DE TERMINAL %c\n", car);
+		buffer_char[ind_escribir] = car;
+		ind_escribir = (ind_escribir +1 ) % TAM_BUF_TERM;
+		char_escritos++;
+		if(lista_espera_char.primero != NULL){
+		//	printk("Habia un proceso esperando a la escritura");
+			//si hay procesos esperando a que se escriba en el terminal
+			BCPptr proceso = lista_espera_char.primero;
+			//elimina al proceso de la lista de procesos en espera de escritura
+			eliminar_primero(&lista_espera_char);
+			proceso->estado=LISTO;
+			//añade el proceso a  la lista de procesos listos
+			insertar_ultimo(&lista_listos, proceso);
+		}
+	}
+	else{
+		printk("El buffer esta lleno\n");
+		}
+  //modificar para la lectura de caracteres
+	fijar_nivel_int(n_interrupcion);
     return;
+
 }
 
 static void roundRobin(){
@@ -684,6 +706,36 @@ int cerrar_mutex(unsigned int mutexid){
 	fijar_nivel_int(n_interrupcion);
 	return 0;
 }
+int leer_caracter(){
+	
+	int n_interrupcion = fijar_nivel_int(NIVEL_1);
+	char leido= -1;//para comprobar si lee del buffer 
+	do{
+		if(char_escritos>0){
+		//tratar cada caracter escrito
+		leido= buffer_char[ind_leer];
+		ind_leer= (ind_leer +1) % TAM_BUF_TERM;
+		char_escritos--;
+	}else{
+		//bloquea el proceso si no hay ningun caracter introducido
+		BCPptr proceso = p_proc_actual;
+		proceso->estado= BLOQUEADO;
+		int interrup = fijar_nivel_int(NIVEL_3);//no se si esta bien
+		//eliminar de la lista de procesos listos
+		eliminar_elem(&lista_listos, proceso);
+		//añadir a la lista de espera de introducir char
+		insertar_ultimo(&lista_espera_char, proceso);
+		//cambio al siguiente de la lista
+		p_proc_actual = planificador();
+
+		fijar_nivel_int(interrup);
+
+		cambio_contexto(&(proceso->contexto_regs),&(p_proc_actual->contexto_regs));
+	}
+	}while(leido<0);
+	fijar_nivel_int(n_interrupcion);
+	return leido;
+}
 /*
  *
  * Rutina de inicializaci�n invocada en arranque
@@ -708,6 +760,10 @@ int main(){
 	int i = 0;
 	for(i = 0;i < NUM_MUT;i++) lista_mutex[i].libre_ocupado = LIBRE;
 
+	int char_escritos;
+	int ind_escribir=0;
+	int ind_leer=0;
+	//poner a 0 leer y escribir?
 	/* crea proceso inicial */
 	if (crear_tarea((void *)"init")<0)
 		panico("no encontrado el proceso inicial");
@@ -717,4 +773,6 @@ int main(){
 	cambio_contexto(NULL, &(p_proc_actual->contexto_regs));
 	panico("S.O. reactivado inesperadamente");
 	return 0;
-}
+	}
+	
+
