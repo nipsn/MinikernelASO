@@ -106,9 +106,9 @@ typedef struct{
 void cuentaAtrasBloqueados();
 int buscarMutexPorNombre();
 int buscarHuecoListaMutex();
-//TO-DO: añadir funciones
+int liberarTodosLosProcesosBloqueadosMutex(mutex* m);
 
-//RR
+//Round-Robin
 int ticksPorRodaja;
 BCPptr procesoAExpulsar;
 
